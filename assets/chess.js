@@ -291,8 +291,8 @@ function calculateMovesByElements(piece) {
 
   if(type === 'knight') {
     let Ecol = col + 1;
-    let Nrow = row - 2;
-    let Srow = row + 2;
+    let Nrow = row - 1;
+    let Srow = row + 1;
     let Wcol = col - 1;
     let EEcol = col + 2;
     let WWcol = col -2;
@@ -316,7 +316,54 @@ function calculateMovesByElements(piece) {
     tiles.push($(allRows[SSrow]).children()[Ecol]);
     tiles.push($(allRows[SSrow]).children()[Wcol]);
     tiles.push($(allRows[Srow]).children()[EEcol]);
-    let SWW = ($(allRows[Srow]).children()[WWcol]);
+    tiles.push($(allRows[Srow]).children()[WWcol]);
+
+    for(let i = 0; i < tiles.length; i++) {
+      if($(tiles[i]).hasClass('empty')) {
+        $(tiles[i]).addClass('avail').append(indicator);
+      }
+    }
+    return;
+  }
+
+  if(type === 'bishop') {
+
+    for(let i = 0; i < 4; i++) {
+      if(i == 0) {
+        var x = 1;
+        var y = 1;  
+      }
+
+      if(i == 1) {
+        var x = -1;
+        var y = 1;
+      }
+
+      if(i == 2) {
+        var x = -1;
+        var y = -1;  
+      }
+
+      if(i == 3) {
+        var x = 1;
+        var y = -1;  
+      }
+
+      for(let j = 1; j < 8; j++) {
+        var xPos = col + (x * j);
+        var yPos = row + (y * j);
+        if((xPos > 7 || xPos < 0) || (yPos > 7 || yPos < 0)) {
+          break;
+        }
+
+        var tile = $(allRows[yPos]).children()[xPos];
+        if($(tile).hasClass('empty')) {
+          $(tile).addClass('avail').append(indicator);
+        } else {
+          break;
+        }
+      }
+    }
   }
 
 }
