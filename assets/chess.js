@@ -215,96 +215,34 @@ function calculateMovesByElements(piece) {
   }
 
   if(type ==='rook' || type === 'queen') {
-    var rowMaxOffset = 0;
-    var rowMinOffset = 0;
-    var colMinOffset = 0;
-    var colMaxOffset = 0;
-    var rowMaxCollision = false;
-    var rowMinCollision = false;
-    var colMaxCollision = false;
-    var colMinCollision = false;
-
-    while(!rowMaxCollision) {
-      let displacement = row + rowMaxOffset + 1;
-      console.log(displacement);
-      if(displacement < 0) {
-        break;
-      }
-      let newRow = allRows[displacement];
-      let target = $(newRow).children()[col];
-      console.log(target);
-      if($(target).hasClass('empty')) {
-        rowMaxOffset++;
-        console.log("rowMaxOffset: " + rowMaxOffset);
-      } else {
-        rowMaxCollision = true;
-      }
-    }
-
-    while(!rowMinCollision) {
-      let displacement = row - rowMinOffset - 1;
-      if(displacement > 7) {
-        break;
+    // Cardinal directions
+    for(let i = 0; i < 4; i++) {
+      var x = 1;
+      var y = 0;
+      if(i == 1) {
+        x = 0;
+        y = 1;
       }
 
-      let newRow = allRows[displacement];
-      let target = $(newRow).children()[col];
-      if($(target).hasClass('empty')) {
-        rowMinOffset++;
-      } else {
-        rowMinCollision = true;
-      }
-    }
-
-    while(!colMaxCollision) {
-      let displacement = col + colMaxOffset + 1;
-      if(displacement > 7) {
-        break;
+      if(i == 2) {
+        x = -1;
       }
 
-      let target = $(allRows[row]).children()[displacement];
-      if($(target).hasClass('empty')) {
-        colMaxOffset++;
-      } else {
-        colMaxCollision = true;
+      if(i == 3) {
+        y = -1;
+        x = 0;
+      }
+      for(let j = 1; j < 9; j++) {
+        var newRow = row + j*y;
+        var newCol = col + j*x;
+        let tiles = $(allRows[newRow]).children();
+        if($(tiles[newCol]).hasClass('empty')) {
+          $(tiles[newCol]).addClass('avail').append(indicator);
+        } else {
+          break;
+        }
       }
     }
-
-    while(!colMinCollision) {
-      let displacement = col - colMinOffset - 1;
-      if(displacement < 0) {
-        break;
-      }
-
-      let target = $(allRows[row]).children()[displacement];
-      if($(target).hasClass('empty')) {
-        colMinOffset++;
-      } else {
-        colMinCollision = true;
-      }
-    }
-
-    console.log(colMinOffset + " " + colMaxOffset + " " + rowMaxOffset + " " + rowMinOffset);
-    for(let i = 0; i < colMinOffset; i++) {
-      let currentRow = $(allRows[row]);
-      $($(currentRow).children()[col - i - 1]).addClass('avail').append(indicator);
-    }
-
-    for(let i = 0; i < colMaxOffset; i++) {
-      let currentRow = $(allRows[row]);
-      $($(currentRow).children()[col + i + 1]).addClass('avail').append(indicator);
-    }
-
-    for(let i = 0; i < rowMaxOffset; i++) {
-      let currentRow = $(allRows[row + i + 1]);
-      $($(currentRow).children()[col]).addClass('avail').append(indicator);
-    }
-
-    for(let i = 0; i < rowMinOffset; i++) {
-      let currentRow = $(allRows[row - i - 1]);
-      $($(currentRow).children()[col]).addClass('avail').append(indicator);
-    }
-
   }
 
   if(type === 'knight') {
