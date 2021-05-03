@@ -19,7 +19,8 @@ $(function() {
     boardInit();
     piecesInit(side);
 
-    $('.tile').click(function() {
+    if(side !== 'observer'){
+      $('.tile').click(function() {
       console.log("CLIQUE");
       //console.log($(this).hasClass('selected'));
   
@@ -63,8 +64,9 @@ $(function() {
         moveInProgress = false;
       }
     });
-  
-  });
+  }
+
+});
   //console.log(side);
   //console.log("CHESS BABY???");
 
@@ -214,6 +216,9 @@ function calculateMovesByElements(piece) {
     //console.log(newRow);
     let newTile = $(newRow).children()[col];
     let extraTile = $(extraRow).children()[col];
+
+    let captureTiles = [$(newRow).children()[col - 1], $(newRow).children()[col + 1]];
+    
     if($(newTile).hasClass("empty")) {
       $(newTile).addClass('avail');
       $(newTile).append(indicator);
@@ -224,6 +229,13 @@ function calculateMovesByElements(piece) {
       }
     }
 
+    for(let i = 0; i < 2; i++) {
+      let tile = captureTiles[i];
+      let targetPiece = $(tile).children('i')[0];
+      if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
+        $(tile).addClass('capture');
+      }
+    }
 
     return;
   }
