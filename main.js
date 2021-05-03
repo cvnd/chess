@@ -69,6 +69,10 @@ io.on('connection', (socket) => {
     // //   }
     // // }
   });
+
+  socket.on('move', function(data) {
+    io.to(data.room).emit('piece moved', data);
+  });
 });
 
 http.listen(port, () => {

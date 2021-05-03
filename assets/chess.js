@@ -1,14 +1,17 @@
+var socket = io();
+var turn = 'light';
+
 $(function() {
+
   $('#board').hide();
   $('input#game-url').attr('value', window.location.href);
-  const room = window.location.pathname.substring(1, window.location.pathname.length).split('/')[1];;
-  var socket = io();
-  var moveInProgress = false;
+  const room = window.location.pathname.substring(1, window.location.pathname.length).split('/')[1];
   socket.emit('join', room);
 
   console.log(side);
 
   socket.on('start game', function() {
+    console.log(room);
 
     // window.onbeforeunload = function () {
     //   return 'Are you sure you want to leave? You will forfeit the game';
@@ -21,52 +24,93 @@ $(function() {
 
     if(side !== 'observer'){
       $('.tile').click(function() {
-      console.log("CLIQUE");
-      //console.log($(this).hasClass('selected'));
-  
-      // if(!moveInProgress) {
-      //   $(".tile.selected").removeClass('selected');
-      //   $('.tile.avail').removeClass('avail').html('');
-      //   $(".tile.capture").removeClass('capture');
-
-      // }
-
-      // Deselecting piece
-      if($(this).hasClass('selected')) {
-        clearSelections();
-        return;
-      }
-      //Show moves on a tile
-      if($(this).hasClass('occupied') && $($(this).children('i')[0]).hasClass(side)) {
-        moveInProgress = true;
-        $(".tile.empty").html('');
-  
-        // Purge classes if previous piece wasn't deselected
-        // $(".tile.selected").removeClass('selected');
-        // $('.tile.avail').removeClass('avail').html('');
-        // $(".tile.capture").removeClass('capture');
-        clearSelections();
-        if($(this).hasClass('selected')) {
-          $(this).removeClass('selected');
-        } else {
-          $(".tile.empty").html('');
-          $(this).addClass('selected');
-          console.log('calcuplating');
-          calculateMovesByElements($(this).children('i')[0]);
+        if(turn !== side) {
+          console.log(turn);
+          return;
         }
-        return;  
-      }
-      //Go move
-      var piece = $('.tile.selected i')[0];
-      if($(this).hasClass('avail') || $(this).hasClass('capture')) {
-        move(piece, this);
-        clearSelections();
-        moveInProgress = false;
-      }
-    });
-  }
+        // console.log("CLIQUE");
+        //console.log($(this).hasClass('selected'));
+    
+        // Deselecting piece
+        if($(this).hasClass('selected')) {
+          clearSelections();
+          return;
+        }
+        //Show moves on a tile
+        if($(this).hasClass('occupied') && $($(this).children('i')[0]).hasClass(side)) {
+          $(".tile.empty").html('');
 
-});
+          clearSelections();
+          if($(this).hasClass('selected')) {
+            $(this).removeClass('selected');
+          } else {
+            $(".tile.empty").html('');
+            $(this).addClass('selected');
+            console.log('calcuplating');
+            calculateMovesByElements($(this).children('i')[0]);
+          }
+          return;  
+        }
+
+        var piece = $('.tile.selected i')[0];
+        if($(this).hasClass('avail') || $(this).hasClass('capture')) {
+
+          // Side to go next
+          turn = 'light';
+          if(side === 'light') {
+            turn = 'dark';
+          }
+          var data = {
+            side: side,
+            room: room,
+            piece: $(piece).attr('title').toLowerCase(),
+            origin: $(piece).parent().attr('data-position'),
+            target: $(this).attr('data-position'),
+            turn: turn
+          }
+          socket.emit('move', data);
+        }
+
+      });
+    }
+  });
+
+  socket.on('piece moved', function(data) {
+    // if(data.turn === side) {
+    //   turn = false;
+    // }
+    turn = data.turn;
+    console.log(data);
+    var yOrigin = data.origin[0];
+    var xOrigin = data.origin[1];
+
+    var yTarget = data.target[0];
+    var xTarget = data.target[1];
+
+    if(data.side !== side) {
+      yOrigin = 9 - yOrigin;
+      xOrigin = 9 - xOrigin;
+
+      yTarget = 9 - yTarget;
+      xTarget = 9 - xTarget;
+    }
+
+    var origin = $('.tile[data-position="' + yOrigin + '' + xOrigin + '"]')[0];
+    var target = $('.tile[data-position="' + yTarget + '' + xTarget + '"]')[0];
+
+    console.log(origin);
+    console.log(target);
+    var piece = $(origin).children('i')[0];
+    console.log(piece);
+    if(data.side !== side) {
+      opponentMove(piece, target);
+      return;
+    } else {
+      move(piece, target);
+    }
+    clearSelections();
+
+  });
   //console.log(side);
   //console.log("CHESS BABY???");
 
@@ -145,7 +189,7 @@ function piecesInit(side) {
 
     let tiles = $(specialRows[i]).children();
     $(tiles).addClass('occupied').removeClass('empty');
-    if(side == 'dark') {
+    if(i == 0) {
       //side = 'light';
       $(tiles[3]).append('<i class="fas fa-chess-queen piece '+ side +'" title="Queen"></i>');
       $(tiles[4]).append('<i class="fas fa-chess-king piece '+ side +'" title="King"></i>');  
@@ -168,17 +212,37 @@ function piecesInit(side) {
   }
 }
 
-function move(piece, target) {
+function opponentMove(piece, target) {
+  $('.tile.target').removeClass('target');
+  $('.tile.origin').removeClass('origin');
 
+  var origin = $(piece).parent();
+  var capturePiece = $(target).children('i')[0];
+
+  if(typeof capturePiece !== 'undefined') {
+    $('#opponent-captures').append(capturePiece);
+  }
+
+  $(origin).html('');
+  $(origin).addClass('origin');
+  //$(target).html('');
+  $(target).append(piece).addClass('target occupied').removeClass("empty");
+  return;
+}
+
+function move(piece, target) {
+  console.log("playermove");
   $('.tile.target').removeClass('target');
   $('.tile.origin').removeClass('origin');
   //console.log(target);
   //console.log(piece);
+  console.log($(piece).parent().hasClass('selected'));
   if($(piece).parent().hasClass('selected')) {
+    console.log('has calsss');
     var origin = $(piece).parent();
     $(origin).addClass('origin');
-    console.log(origin);
-    console.log(piece);
+    // console.log(origin);
+    // console.log(piece);
     // console.log("origin: " + origin);
     $(origin).html('');
     $('.tile.avail').removeClass('avail').html('');
@@ -218,7 +282,7 @@ function calculateMovesByElements(piece) {
     let extraTile = $(extraRow).children()[col];
 
     let captureTiles = [$(newRow).children()[col - 1], $(newRow).children()[col + 1]];
-    
+
     if($(newTile).hasClass("empty")) {
       $(newTile).addClass('avail');
       $(newTile).append(indicator);
