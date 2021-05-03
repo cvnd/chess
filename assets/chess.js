@@ -1,54 +1,27 @@
 $(function() {
+  $('#board').hide();
+  $('input#game-url').attr('value', window.location.href);
+  const room = window.location.pathname.substring(1, window.location.pathname.length).split('/')[1];;
+  console.log(room);
+  var socket = io();
 
-    var socket = io();
+  socket.emit('join', room);
+  
+  socket.on('start game', function() {
 
-    var messages = document.getElementById('messages');
-    var form = document.getElementById('form');
-    var input = document.getElementById('input');
+    window.onbeforeunload = function () {
+      return 'Are you sure you want to leave? You will forfeit the game';
+    }
   
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      if (input.value) {
-        socket.emit('chat message', input.value);
-        input.value = '';
-      }
-    });
-  
-    socket.on('chat message', function(msg) {
-      var item = document.createElement('li');
-      item.textContent = msg;
-      messages.appendChild(item);
-      window.scrollTo(0, document.body.scrollHeight);
-    });
-  
-  
-    console.log("CHESS BABY???");
-
+    $('#lobby').hide();
+    $('#board').show();
     boardInit();
     piecesInit();
 
-    // $('.tile.occupied').click(function() {
-    //   console.log('clicky');
-    //   $(".tile.empty").html('');
-
-    //   // Purge classes
-    //   $(".tile.selected").removeClass('selected');
-    //   $('.tile.avail').removeClass('avail');
-    //   if($(this).hasClass('selected')) {
-    //     $(this).removeClass('selected');
-    //   } else {
-    //     $(".tile.empty").html('');
-    //     $(this).addClass('selected');
-
-    //     calculateMovesByElements($(this).children()[0]);
-    //   }
-
-    //   //$('.tile.occupied').unbind('click');
-    // });
-
     $('.tile').click(function() {
+      console.log("CLIQUE");
       //console.log($(this).hasClass('selected'));
-
+  
       if($(this).hasClass('selected')) {
           $(this).removeClass('selected');
           $('.tile.avail').removeClass('avail').html('');
@@ -57,7 +30,7 @@ $(function() {
       //Show moves
       if($(this).hasClass('occupied') && $($(this).children()[0]).hasClass('light')) {
         $(".tile.empty").html('');
-
+  
         // Purge classes
         $(".tile.selected").removeClass('selected');
         $('.tile.avail').removeClass('avail').html('');
@@ -77,6 +50,33 @@ $(function() {
         move(piece, this);
       }
     });
+  
+  });
+  //console.log(side);
+  console.log("CHESS BABY???");
+
+  // boardInit();
+  // piecesInit();
+
+  // $('.tile.occupied').click(function() {
+  //   console.log('clicky');
+  //   $(".tile.empty").html('');
+
+  //   // Purge classes
+  //   $(".tile.selected").removeClass('selected');
+  //   $('.tile.avail').removeClass('avail');
+  //   if($(this).hasClass('selected')) {
+  //     $(this).removeClass('selected');
+  //   } else {
+  //     $(".tile.empty").html('');
+  //     $(this).addClass('selected');
+
+  //     calculateMovesByElements($(this).children()[0]);
+  //   }
+
+  //   //$('.tile.occupied').unbind('click');
+  // });
+
 });
 
 function boardInit() {
@@ -186,17 +186,18 @@ function calculateMovesByElements(piece) {
     if($(newTile).hasClass("empty")) {
       $(newTile).addClass('avail');
       $(newTile).append(indicator);
+      if(row === 6 && $(extraTile).hasClass("empty")) {
+        $(extraTile).append(indicator);
+        $(extraTile).addClass('avail');
+  
+      }
     }
 
-    if(row === 6 && $(extraTile).hasClass("empty")) {
-      $(extraTile).append(indicator);
-      $(extraTile).addClass('avail');
 
-    }
     return;
   }
 
-  if(type ==='rook') {
+  if(type ==='rook' || type === 'queen') {
     var rowMaxOffset = 0;
     var rowMinOffset = 0;
     var colMinOffset = 0;
@@ -323,10 +324,9 @@ function calculateMovesByElements(piece) {
         $(tiles[i]).addClass('avail').append(indicator);
       }
     }
-    return;
   }
 
-  if(type === 'bishop') {
+  if(type === 'bishop' || type === 'queen') {
 
     for(let i = 0; i < 4; i++) {
       if(i == 0) {
