@@ -2,21 +2,21 @@ $(function() {
   $('#board').hide();
   $('input#game-url').attr('value', window.location.href);
   const room = window.location.pathname.substring(1, window.location.pathname.length).split('/')[1];;
-  console.log(room);
   var socket = io();
-
   socket.emit('join', room);
-  
+
+  console.log(side);
+
   socket.on('start game', function() {
 
-    window.onbeforeunload = function () {
-      return 'Are you sure you want to leave? You will forfeit the game';
-    }
+    // window.onbeforeunload = function () {
+    //   return 'Are you sure you want to leave? You will forfeit the game';
+    // }
   
     $('#lobby').hide();
     $('#board').show();
     boardInit();
-    piecesInit();
+    piecesInit(side);
 
     $('.tile').click(function() {
       console.log("CLIQUE");
@@ -28,7 +28,7 @@ $(function() {
           return;
       }
       //Show moves
-      if($(this).hasClass('occupied') && $($(this).children()[0]).hasClass('light')) {
+      if($(this).hasClass('occupied') && $($(this).children()[0]).hasClass(side)) {
         $(".tile.empty").html('');
   
         // Purge classes
@@ -85,32 +85,47 @@ function boardInit() {
     $(row).attr('class', 'row');
     for(let j = 1; j < 9; j++) {
       var tile = document.createElement("div");
-      var tileClass = 'dark';
+      var tileClass = 'light';
       if((i % 2 === 0 && j % 2 === 0) || (i % 2 === 1 && j % 2 === 1)) {
-        tileClass = 'light';
+        tileClass = 'dark';
       } 
       $(tile).attr({
         'class': 'tile empty ' + tileClass,
-        'data-position': '' + (9 - i) + j +''
+        'data-position': '' + i + j +''
       });
       $(row).append(tile);
     }
     $("#board .inner").append(row);
   }
+
+  var rows = $('#board .inner').children();
+  for(let i = 0; i < 8; i++) {
+    $(rows[i]).css("grid-row-start", 9 - 1 - i);
+  }
 }
 
-function piecesInit() {
+function piecesInit(side) {
   //Rooks
   var rows = $('#board .inner .row');
   //console.log(rows[0]);
 
   var specialRows = [rows[0], rows[7]];
+  var pawnRows = [rows[1], rows[6]];
   for(let i = 0; i < 2; i++) {
-    let side = 'dark';
+    if(i == 1) {
+      if(side == 'dark') {
+        side = 'light';
+      } else {
+        side = 'dark';
+      }
+    }
+    let pawnTiles = $(pawnRows[i]).children();
+    $(pawnTiles).append('<i class="fas fa-chess-pawn piece '+ side +'" title="Pawn"></i>').addClass('occupied').removeClass('empty');
+
     let tiles = $(specialRows[i]).children();
     $(tiles).addClass('occupied').removeClass('empty');
-    if(i != 0) {
-      side = 'light';
+    if(side == 'dark') {
+      //side = 'light';
       $(tiles[3]).append('<i class="fas fa-chess-queen piece '+ side +'" title="Queen"></i>');
       $(tiles[4]).append('<i class="fas fa-chess-king piece '+ side +'" title="King"></i>');  
     } else {
@@ -131,19 +146,21 @@ function piecesInit() {
 
   }
 
-  var pawnRows = [rows[1], rows[6]];
-  for(let i = 0; i < 2; i++) {
-    let side = 'dark';
-    if(i != 0) {
-      side = 'light';
-    }
-    let tiles = $(pawnRows[i]).children();
+  // for(let i = 0; i < 2; i++) {
+  //   if(i == 1) {
+  //     if(side == 'light') {
+  //       side = 'dark';
+  //     } else {
+  //       side = 'light';
+  //     }
+  //   }
+  //   let tiles = $(pawnRows[i]).children();
 
-    $(tiles).append('<i class="fas fa-chess-pawn piece '+ side +'" title="Pawn"></i>').addClass('occupied').removeClass('empty');
+  //   $(tiles).append('<i class="fas fa-chess-pawn piece '+ side +'" title="Pawn"></i>').addClass('occupied').removeClass('empty');
 
 
 
-  }
+  // }
 }
 
 function move(piece, target) {
@@ -171,22 +188,22 @@ function calculateMovesByElements(piece) {
   var pos = $(piece).parent().attr('data-position');
   const originTile = $(piece).parent();
   const originRow = $(originTile).parent();
-  const row = 8 - pos[0];
+  const row = pos[0] - 1;
   const col = pos[1] - 1;
   console.log(row);
   console.log(col);
 
   if(type === 'pawn') {
     // console.log("pawnee");
-    let newRow = allRows[row - 1];
-    let extraRow = allRows[row - 2];
+    let newRow = allRows[row + 1];
+    let extraRow = allRows[row + 2];
     //console.log(newRow);
     let newTile = $(newRow).children()[col];
     let extraTile = $(extraRow).children()[col];
     if($(newTile).hasClass("empty")) {
       $(newTile).addClass('avail');
       $(newTile).append(indicator);
-      if(row === 6 && $(extraTile).hasClass("empty")) {
+      if(row === 1 && $(extraTile).hasClass("empty")) {
         $(extraTile).append(indicator);
         $(extraTile).addClass('avail');
   
@@ -208,7 +225,7 @@ function calculateMovesByElements(piece) {
     var colMinCollision = false;
 
     while(!rowMaxCollision) {
-      let displacement = row - rowMaxOffset - 1;
+      let displacement = row + rowMaxOffset + 1;
       console.log(displacement);
       if(displacement < 0) {
         break;
@@ -225,7 +242,7 @@ function calculateMovesByElements(piece) {
     }
 
     while(!rowMinCollision) {
-      let displacement = row + rowMinOffset + 1;
+      let displacement = row - rowMinOffset - 1;
       if(displacement > 7) {
         break;
       }
@@ -278,12 +295,12 @@ function calculateMovesByElements(piece) {
       $($(currentRow).children()[col + i + 1]).addClass('avail').append(indicator);
     }
 
-    for(let i = 0; i < rowMinOffset; i++) {
+    for(let i = 0; i < rowMaxOffset; i++) {
       let currentRow = $(allRows[row + i + 1]);
       $($(currentRow).children()[col]).addClass('avail').append(indicator);
     }
 
-    for(let i = 0; i < rowMaxOffset; i++) {
+    for(let i = 0; i < rowMinOffset; i++) {
       let currentRow = $(allRows[row - i - 1]);
       $($(currentRow).children()[col]).addClass('avail').append(indicator);
     }
@@ -292,13 +309,13 @@ function calculateMovesByElements(piece) {
 
   if(type === 'knight') {
     let Ecol = col + 1;
-    let Nrow = row - 1;
-    let Srow = row + 1;
+    let Nrow = row + 1;
+    let Srow = row - 1;
     let Wcol = col - 1;
     let EEcol = col + 2;
     let WWcol = col -2;
-    let NNrow = row - 2;
-    let SSrow = row + 2;
+    let NNrow = row + 2;
+    let SSrow = row - 2;
     
     let tiles = [];
     // let NNEtile = $(allRows[NNrow]).children()[Ecol];
