@@ -145,29 +145,17 @@ function piecesInit(side) {
 
 
   }
-
-  // for(let i = 0; i < 2; i++) {
-  //   if(i == 1) {
-  //     if(side == 'light') {
-  //       side = 'dark';
-  //     } else {
-  //       side = 'light';
-  //     }
-  //   }
-  //   let tiles = $(pawnRows[i]).children();
-
-  //   $(tiles).append('<i class="fas fa-chess-pawn piece '+ side +'" title="Pawn"></i>').addClass('occupied').removeClass('empty');
-
-
-
-  // }
 }
 
 function move(piece, target) {
+
+  $('.tile.target').removeClass('target');
+  $('.tile.origin').removeClass('origin');
   //console.log(target);
   //console.log(piece);
   if($(piece).parent().hasClass('selected')) {
     var origin = $(piece).parent();
+    $(origin).addClass('origin');
     console.log(origin);
     console.log(piece);
     // console.log("origin: " + origin);
@@ -175,7 +163,7 @@ function move(piece, target) {
     $('.tile.avail').removeClass('avail').html('');
     $('.tile.selected').removeClass('selected');
     $(origin).removeClass('occupied').addClass('empty');
-    $(target).append(piece).addClass('occupied').removeClass('empty');
+    $(target).append(piece).addClass('occupied target').removeClass('empty');
 
   }
 }
@@ -321,4 +309,5 @@ function calculateMovesByElements(piece) {
     }
   }
 
+  //TO-DO: king
 }

@@ -35,7 +35,7 @@ body {
     grid-template: 100% / repeat(8, 1fr);
 }
 .tile.dark {
-    background-color: #8d6969;
+    background-color: #8d314c;
 }
 
 .tile.light {
@@ -48,4 +48,20 @@ body {
 
 .fa-times {
     color: #5e1d1d87;
+}
+
+.tile.dark.origin {
+    background-color:#c54598;
+}
+
+.tile.light.origin {
+    background-color:#ffbfec;
+}
+
+.tile.dark.target {
+    background-color: #c10880;
+}
+
+.tile.light.target {
+    background-color: #d77dbc;
 }
