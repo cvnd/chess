@@ -3,6 +3,7 @@ $(function() {
   $('input#game-url').attr('value', window.location.href);
   const room = window.location.pathname.substring(1, window.location.pathname.length).split('/')[1];;
   var socket = io();
+  var moveInProgress = false;
   socket.emit('join', room);
 
   console.log(side);
@@ -22,38 +23,50 @@ $(function() {
       console.log("CLIQUE");
       //console.log($(this).hasClass('selected'));
   
+      // if(!moveInProgress) {
+      //   $(".tile.selected").removeClass('selected');
+      //   $('.tile.avail').removeClass('avail').html('');
+      //   $(".tile.capture").removeClass('capture');
+
+      // }
+
+      // Deselecting piece
       if($(this).hasClass('selected')) {
-          $(this).removeClass('selected');
-          $('.tile.avail').removeClass('avail').html('');
-          return;
+        clearSelections();
+        return;
       }
-      //Show moves
-      if($(this).hasClass('occupied') && $($(this).children()[0]).hasClass(side)) {
+      //Show moves on a tile
+      if($(this).hasClass('occupied') && $($(this).children('i')[0]).hasClass(side)) {
+        moveInProgress = true;
         $(".tile.empty").html('');
   
-        // Purge classes
-        $(".tile.selected").removeClass('selected');
-        $('.tile.avail').removeClass('avail').html('');
+        // Purge classes if previous piece wasn't deselected
+        // $(".tile.selected").removeClass('selected');
+        // $('.tile.avail').removeClass('avail').html('');
+        // $(".tile.capture").removeClass('capture');
+        clearSelections();
         if($(this).hasClass('selected')) {
           $(this).removeClass('selected');
         } else {
           $(".tile.empty").html('');
           $(this).addClass('selected');
-  
-          calculateMovesByElements($(this).children()[0]);
+          console.log('calcuplating');
+          calculateMovesByElements($(this).children('i')[0]);
         }
         return;  
       }
       //Go move
       var piece = $('.tile.selected i')[0];
-      if($(this).hasClass('avail')) {
+      if($(this).hasClass('avail') || $(this).hasClass('capture')) {
         move(piece, this);
+        clearSelections();
+        moveInProgress = false;
       }
     });
   
   });
   //console.log(side);
-  console.log("CHESS BABY???");
+  //console.log("CHESS BABY???");
 
   // boardInit();
   // piecesInit();
@@ -78,6 +91,12 @@ $(function() {
   // });
 
 });
+
+function clearSelections() {
+  $(".tile.selected").removeClass('selected');
+  $('.tile.avail').removeClass('avail').html('');
+  $(".tile.capture").removeClass('capture');
+}
 
 function boardInit() {
   for(let i = 1; i < 9; i++) {
@@ -163,8 +182,15 @@ function move(piece, target) {
     $('.tile.avail').removeClass('avail').html('');
     $('.tile.selected').removeClass('selected');
     $(origin).removeClass('occupied').addClass('empty');
-    $(target).append(piece).addClass('occupied target').removeClass('empty');
 
+    if($(target).hasClass('capture')) {
+      var capturePiece = $(target).children('i')[0];
+      $('#player-captures').append(capturePiece);
+      $(target).removeClass('capture');
+    } else {
+      $(target).removeClass('empty').addClass('occupied');
+    }
+    $(target).append(piece).addClass('target');
   }
 }
 
@@ -205,8 +231,8 @@ function calculateMovesByElements(piece) {
   if(type ==='rook' || type === 'queen') {
     // Cardinal directions
     for(let i = 0; i < 4; i++) {
-      var x = 1;
-      var y = 0;
+      let x = 1;
+      let y = 0;
       if(i == 1) {
         x = 0;
         y = 1;
@@ -223,10 +249,16 @@ function calculateMovesByElements(piece) {
       for(let j = 1; j < 9; j++) {
         var newRow = row + j*y;
         var newCol = col + j*x;
-        let tiles = $(allRows[newRow]).children();
-        if($(tiles[newCol]).hasClass('empty')) {
-          $(tiles[newCol]).addClass('avail').append(indicator);
+        let tile = $(allRows[newRow]).children()[newCol];
+        if($(tile).hasClass('empty')) {
+          $(tile).addClass('avail').append(indicator);
         } else {
+          // If tile is occupied with a piece NOT on your side
+          let targetPiece = $(tile).children('i')[0];
+          console.log(targetPiece);
+          if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
+            $(tile).addClass('capture');
+          }
           break;
         }
       }
@@ -263,33 +295,41 @@ function calculateMovesByElements(piece) {
     tiles.push($(allRows[Srow]).children()[WWcol]);
 
     for(let i = 0; i < tiles.length; i++) {
-      if($(tiles[i]).hasClass('empty')) {
-        $(tiles[i]).addClass('avail').append(indicator);
+      let tile = tiles[i];
+      if($(tile).hasClass('empty')) {
+        $(tile).addClass('avail').append(indicator);
+      } else {
+        let targetPiece = $(tile).children('i')[0];
+        if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
+          $(tile).addClass('capture');
+        }
+        break;
       }
     }
   }
 
   if(type === 'bishop' || type === 'queen') {
-
+    let x = 1;
+    let y = 1;
     for(let i = 0; i < 4; i++) {
-      if(i == 0) {
-        var x = 1;
-        var y = 1;  
-      }
+      // if(i == 0) {
+      //   var x = 1;
+      //   var y = 1;  
+      // }
 
       if(i == 1) {
-        var x = -1;
-        var y = 1;
+        x = -1;
+        y = 1;
       }
 
       if(i == 2) {
-        var x = -1;
-        var y = -1;  
+        x = -1;
+        y = -1;  
       }
 
       if(i == 3) {
-        var x = 1;
-        var y = -1;  
+        x = 1;
+        y = -1;  
       }
 
       for(let j = 1; j < 8; j++) {
@@ -299,10 +339,16 @@ function calculateMovesByElements(piece) {
           break;
         }
 
-        var tile = $(allRows[yPos]).children()[xPos];
+        let tile = $(allRows[yPos]).children()[xPos];
         if($(tile).hasClass('empty')) {
           $(tile).addClass('avail').append(indicator);
         } else {
+
+          let targetPiece = $(tile).children('i')[0];
+          if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
+            $(tile).addClass('capture');
+          }
+
           break;
         }
       }

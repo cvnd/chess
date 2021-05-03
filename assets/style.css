@@ -1,8 +1,8 @@
 body { 
     margin: 0; 
-    padding-bottom: 3rem; 
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background-color: lavender; 
+    width: 100%;
 }
 
 #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
@@ -14,8 +14,38 @@ body {
 #messages > li { padding: 0.5rem 1rem; }
 #messages > li:nth-child(odd) { background: #efefef; }
 
+#main {
+    width: 70%;
+    margin: auto;
+    display: grid;
+    grid-template-columns: 20% 80%;
+    grid-template-rows: 100%;
+    grid-column-gap: 10px;
+}
+
+
+#captures {
+    background: #673ab7;
+    font-size: 2.5em;
+    box-sizing: border-box;
+}
+
+
+
+#captures div {
+    padding: 15px 0;
+    height: 50%;
+    display: grid;
+    box-sizing: border-box;
+    grid-template: repeat(5, 1fr) / repeat(3, 1fr);
+    max-width: 100%;
+    overflow: hidden;
+    align-items: center;
+    justify-items: center;
+}
+
 #board {
-    width: 60%;
+    width: 100%;
     aspect-ratio: 1/1;
     margin: auto;
     text-align: center;
@@ -64,4 +94,12 @@ body {
 
 .tile.light.target {
     background-color: #d77dbc;
+}
+
+.tile.dark.capture {
+    background: radial-gradient(circle at center, #54d399 10%, #8d314c, #8d314c 100%);
+}
+
+.tile.light.capture {
+    background: radial-gradient(circle at center, #54d399 10%, #e8c5b6, #e8c5b6 100%);
 }
