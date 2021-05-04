@@ -1,8 +1,38 @@
-body { 
-    margin: 0; 
+body {
+    margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background-color: lavender; 
+    background-color: #abbbb5;
     width: 100%;
+    display: grid;
+    grid-template: 100% / 100%;
+    justify-items: center;
+    align-items: center;
+    height: 100vh;
+}
+
+button#generateRoom {
+    padding: 2%;
+    width: 20%;
+    text-transform: uppercase;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+    text-transform: lowercase;
+}
+#container {
+    display: grid;
+    grid-template: 9fr 1fr / 100%;
+    width: 100%;
+    align-items: center;
+    height: 80%;
+    justify-items: center;
+}
+
+div#turn {
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 20px;
+    color: #4a1e1e;
 }
 
 #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
@@ -15,33 +45,57 @@ body {
 #messages > li:nth-child(odd) { background: #efefef; }
 
 #main {
-    width: 70%;
-    margin: auto;
+    width: 74%;
     display: grid;
-    grid-template-columns: 20% 80%;
+    grid-template-columns: 2fr 8fr 2fr;
     grid-template-rows: 100%;
-    grid-column-gap: 10px;
+    grid-column-gap: 1%;
 }
 
+#lobby {
+    padding: 5%;
+    background: white;
+    border-top-right-radius: 5% 10%;
+    border-bottom-right-radius: 5% 10%;
+    border-top-left-radius: 5% 10%;
+    border-bottom-left-radius: 5% 10%;
+    text-align: center;
+    max-height: 400px;
+    box-sizing: border-box;
+}
 
-#captures {
+#lobby h1 {
+    text-transform: lowercase;
+}
+
+input#game-url {
+    width: 100%;
+    font-size: 1em;
+    padding: 5%;
+    box-sizing: border-box;
+    background: #e3e3e3;
+    border: none;
+    border: 1px solid #bcbcbc;
+    margin-top: 10px;
+}
+/* #captures {
     background: #673ab7;
     font-size: 2.5em;
     box-sizing: border-box;
-}
+} */
 
 
 
-#captures div {
-    padding: 15px 0;
-    height: 50%;
+.captures {
+    height: 100%;
     display: grid;
     box-sizing: border-box;
-    grid-template: repeat(5, 1fr) / repeat(3, 1fr);
+    grid-template: repeat(8, 1fr) / repeat(2, 1fr);
     max-width: 100%;
     overflow: hidden;
     align-items: center;
     justify-items: center;
+    font-size: 4vw;
 }
 
 #board {
@@ -49,7 +103,7 @@ body {
     aspect-ratio: 1/1;
     margin: auto;
     text-align: center;
-    font-size: 5vw;
+    font-size: 4vw;
 }
 #board .inner {
     width: 100%;
@@ -58,48 +112,62 @@ body {
     box-sizing: border-box;
     border: 5px solid #300505;
     grid-template: repeat(8, 1fr) / 100%;
-    background: white;}
+    background: #794E4E;}
 
 #board .row {
     display: grid;
     grid-template: 100% / repeat(8, 1fr);
 }
 .tile.dark {
-    background-color: #8d314c;
+    background-color: #794E4E;
 }
 
 .tile.light {
-    background-color: #e8c5b6;
+    background-color: #9F6B5F;
+}
+
+.piece.dark {
+    color: #4A1E1E;
 }
 
 .piece.light {
-    color: white;
+    color: #FFD9D9;
 }
 
 .fa-times {
-    color: #5e1d1d87;
+    color: rgb(74, 30, 30 , 40%);
 }
 
 .tile.dark.origin {
-    background-color:#c54598;
+    background-color:#D9B2B2;
 }
 
 .tile.light.origin {
-    background-color:#ffbfec;
+    background-color: #DAB7AE;
 }
 
 .tile.dark.target {
-    background-color: #c10880;
+    background-color: #A35B4A;
 }
 
 .tile.light.target {
-    background-color: #d77dbc;
+    background-color: #C46E5A;
 }
 
 .tile.dark.capture {
-    background: radial-gradient(circle at center, #54d399 10%, #8d314c, #8d314c 100%);
+    /* background: radial-gradient(circle at center, #54d399 10%, #8d314c, #8d314c 100%); */
+    background-color: #B88754;
 }
 
 .tile.light.capture {
-    background: radial-gradient(circle at center, #54d399 10%, #e8c5b6, #e8c5b6 100%);
+    /* background: radial-gradient(circle at center, #54d399 10%, #e8c5b6, #e8c5b6 100%); */
+    background-color: #CA945B;
+}
+
+.tile.dark.selected {
+    background-color: #7c6263;
+}
+
+.tile.light.selected {
+    background-color: #bbc9ad;
 }

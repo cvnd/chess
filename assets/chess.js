@@ -3,7 +3,7 @@ var turn = 'light';
 
 $(function() {
 
-  $('#board').hide();
+  $('.game').hide();
   $('input#game-url').attr('value', window.location.href);
   const room = window.location.pathname.substring(1, window.location.pathname.length).split('/')[1];
   socket.emit('join', room);
@@ -18,7 +18,10 @@ $(function() {
     // }
   
     $('#lobby').hide();
-    $('#board').show();
+    $('.game').show();
+
+    updateTurn(side);
+
     boardInit();
     piecesInit(side);
 
@@ -60,6 +63,7 @@ $(function() {
           if(side === 'light') {
             turn = 'dark';
           }
+
           var data = {
             side: side,
             room: room,
@@ -76,9 +80,6 @@ $(function() {
   });
 
   socket.on('piece moved', function(data) {
-    // if(data.turn === side) {
-    //   turn = false;
-    // }
     turn = data.turn;
     console.log(data);
     var yOrigin = data.origin[0];
@@ -98,10 +99,12 @@ $(function() {
     var origin = $('.tile[data-position="' + yOrigin + '' + xOrigin + '"]')[0];
     var target = $('.tile[data-position="' + yTarget + '' + xTarget + '"]')[0];
 
-    console.log(origin);
-    console.log(target);
+    //console.log(origin);
+    //console.log(target);
     var piece = $(origin).children('i')[0];
-    console.log(piece);
+    //console.log(piece);
+    updateTurn(side);
+
     if(data.side !== side) {
       opponentMove(piece, target);
       return;
@@ -111,30 +114,7 @@ $(function() {
     clearSelections();
 
   });
-  //console.log(side);
-  //console.log("CHESS BABY???");
 
-  // boardInit();
-  // piecesInit();
-
-  // $('.tile.occupied').click(function() {
-  //   console.log('clicky');
-  //   $(".tile.empty").html('');
-
-  //   // Purge classes
-  //   $(".tile.selected").removeClass('selected');
-  //   $('.tile.avail').removeClass('avail');
-  //   if($(this).hasClass('selected')) {
-  //     $(this).removeClass('selected');
-  //   } else {
-  //     $(".tile.empty").html('');
-  //     $(this).addClass('selected');
-
-  //     calculateMovesByElements($(this).children()[0]);
-  //   }
-
-  //   //$('.tile.occupied').unbind('click');
-  // });
 
 });
 
@@ -142,6 +122,24 @@ function clearSelections() {
   $(".tile.selected").removeClass('selected');
   $('.tile.avail').removeClass('avail').html('');
   $(".tile.capture").removeClass('capture');
+}
+
+function updateTurn(side) {
+  console.log(side + " " + turn);
+  if(side !== 'observer') {
+    if(turn === side) {
+      $('#turn').html('Your turn');
+    } else {
+      $('#turn').html("Opponent's turn");
+    }
+  } else {
+    if(turn === 'light') {
+      $('#turn').html("White's turn");
+    } else {
+      $('#turn').html("Black's turn");
+
+    }
+  }
 }
 
 function boardInit() {
@@ -251,7 +249,11 @@ function move(piece, target) {
 
     if($(target).hasClass('capture')) {
       var capturePiece = $(target).children('i')[0];
-      $('#player-captures').append(capturePiece);
+      var capturedCount = $('#player-captures').children().length;
+      console.log(capturedCount / 2);
+      console.log(Math.floor(capturedCount / 2));
+      $('#player-captures').append(capturePiece);      
+      $(capturePiece).css('grid-row-start', 8 - Math.floor(capturedCount / 4));
       $(target).removeClass('capture');
     } else {
       $(target).removeClass('empty').addClass('occupied');
@@ -370,6 +372,7 @@ function calculateMovesByElements(piece) {
     tiles.push($(allRows[Srow]).children()[EEcol]);
     tiles.push($(allRows[Srow]).children()[WWcol]);
 
+    console.log(tiles);
     for(let i = 0; i < tiles.length; i++) {
       let tile = tiles[i];
       if($(tile).hasClass('empty')) {
@@ -379,7 +382,6 @@ function calculateMovesByElements(piece) {
         if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
           $(tile).addClass('capture');
         }
-        break;
       }
     }
   }
@@ -388,10 +390,6 @@ function calculateMovesByElements(piece) {
     let x = 1;
     let y = 1;
     for(let i = 0; i < 4; i++) {
-      // if(i == 0) {
-      //   var x = 1;
-      //   var y = 1;  
-      // }
 
       if(i == 1) {
         x = -1;
@@ -432,4 +430,22 @@ function calculateMovesByElements(piece) {
   }
 
   //TO-DO: king
+
+  if(type === 'king') {
+    for(let i = -1; i < 2; i++) {
+      let currentRow = allRows[row + i];
+      for(let j = -1; j < 2; j++) {
+        let tile = $(currentRow).children()[col + j];
+        if($(tile).hasClass('empty')) {
+          $(tile).addClass('avail').append(indicator);
+        } else {
+          let targetPiece = $(tile).children('i')[0];
+          if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
+            $(tile).addClass('capture');
+          }
+        }
+      }
+    }
+  }
+
 }

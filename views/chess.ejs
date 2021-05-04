@@ -14,23 +14,26 @@
 
   </head>
   <body>
-    <div id="lobby">
-      <h1>Waiting for opponent...</h1>
-      <div>
-        Send this to a friend to play!
-        <input type="text" id="game-url" name="url" readonly>
+    <div id="container">
+      <div id="lobby">
+        <h1>Waiting for opponent...</h1>
+        <div>
+          Send this to a friend to play!
+          <input type="text" id="game-url" name="url" readonly>
+        </div>
       </div>
-    </div>
-    <div id="main">
-      <div id="captures">
-        <div id="opponent-captures"></div>
-        <div id="player-captures"></div>
-      </div>
-      
-      <div id="board">
-        <div class="inner"></div>
-      </div>
-    </div>
 
+      <div id="main" class="game">
+        <div id="player-captures" class="captures"></div>
+        
+        <div id="board">
+          <div class="inner"></div>
+        </div>
+
+        <div id="opponent-captures" class="captures"></div>
+      </div>
+
+      <div id="turn"class="game"></div>
+    </div>
   </body>
 </html>
