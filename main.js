@@ -23,13 +23,27 @@ app.get('/lobby', (req, res) => {
 app.get('/play/:id', (req, res) => {
   var status = 'light';
   var room = io.sockets.adapter.rooms.get(req.params.id);
-  console.log(room);
+  //console.log(room);
   if(typeof room !== 'undefined'){
-    console.log(room.size);
+    console.log("Joining room with size: " + room.size);
 
     if(room.size == 1) {
-      console.log('noboday');
-      status = 'dark';
+      let playingSockets = Object.keys(room.players);
+
+      if(room.players[playingSockets[0]] === 'light') {
+        status = 'dark';
+      }
+      // //let playingSockets = room.values();
+      // //console.log("other sockets: " + playingSockets.next().side);
+      // // Object.keys(playingSockets.next()).forEach((prop)=> console.log(prop));
+
+      // //playingSockets.next().value;
+      // // status = io.to(playingSockets.next().value).emit('fetch side');
+      // // io.sockets.on('return side', function(side) {
+      // //   console.log("side fetched: " + side);
+      //   // if(side === 'light') {
+      //status = 'dark';
+      //   // }
     } else if(room.size >= 2) {
       status = 'observer';
     }
@@ -42,16 +56,34 @@ app.get('/play/:id', (req, res) => {
 
 
 io.on('connection', (socket) => {
-  console.log(socket.id);
+  //console.log(socket.id);
+  socket.room = '';
+  socket.side = '';
   socket.on('chat message', msg => {
     io.emit('chat message', msg);
   });
 
-  socket.on('join', function(room_id) {
+  socket.on('join', function(data) {
+    var room_id = data.room;
     socket.join(room_id);
-    console.log("room joined: " + room_id);
     // console.log(io.sockets.adapter.rooms);
-    const room = io.sockets.adapter.rooms.get(room_id);
+    socket.room = room_id;
+    var room = io.sockets.adapter.rooms.get(room_id);
+    console.log(room);
+    console.log("SocketID: " + socket.id + " Room Joined: " + room_id + " Room Size: " + room.size);
+
+    if(room.size == 1) {
+      room.players = {};
+      room.players[socket.id] = 'light';
+      socket.side = 'light';
+    } else if (room.size == 2) {
+      room.players[socket.id] = 'dark';
+      socket.side = 'dark';
+    }
+
+    //Stringify to JSON object
+    // room.players = JSON.parse(room.players);
+    //socket.side = data.side;
     if(room.size == 2) {
       io.to(room_id).emit('start game');
     }
@@ -70,10 +102,21 @@ io.on('connection', (socket) => {
     // // }
   });
 
+
   socket.on('move', function(data) {
     io.to(data.room).emit('piece moved', data);
   });
+
+  socket.on('disconnecting', function() {
+    io.to(socket.room).emit('forfeiting', socket.side);
+  });
+
+  socket.on('check', function(data) {
+    console.log("checking...");
+    io.to(data.room).emit('checked', data.side);
+  });
 });
+
 
 http.listen(port, () => {
   console.log(`Socket.IO server running at http://localhost:${port}/`);

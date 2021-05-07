@@ -1,34 +1,40 @@
 var socket = io();
 var turn = 'light';
-
+var start = false;
 $(function() {
 
   $('.game').hide();
   $('input#game-url').attr('value', window.location.href);
   const room = window.location.pathname.substring(1, window.location.pathname.length).split('/')[1];
-  socket.emit('join', room);
+  
+  socket.emit('join', {room: room, side: side});
 
-  console.log(side);
+  //console.log(side);
 
   socket.on('start game', function() {
-    console.log(room);
+    //console.log(room);
 
-    // window.onbeforeunload = function () {
-    //   return 'Are you sure you want to leave? You will forfeit the game';
-    // }
+    window.onbeforeunload = function () {
+      clearSelections();
+      return 'Are you sure you want to leave? You will forfeit the game';
+    }
+
+    //console.log(side);
   
     $('#lobby').hide();
     $('.game').show();
 
     updateTurn(side);
-
-    boardInit();
-    piecesInit(side);
+    if(start == false) {
+      boardInit();
+      piecesInit(side);
+      start = true;
+    }
 
     if(side !== 'observer'){
       $('.tile').click(function() {
         if(turn !== side) {
-          console.log(turn);
+          //console.log(turn);
           return;
         }
         // console.log("CLIQUE");
@@ -49,8 +55,10 @@ $(function() {
           } else {
             $(".tile.empty").html('');
             $(this).addClass('selected');
-            console.log('calcuplating');
-            calculateMovesByElements($(this).children('i')[0]);
+            //console.log('calcuplating');
+            var options = calculateMovesByElements($(this).children('i')[0], side);
+            //console.log(options);
+            boardIndicators(options);
           }
           return;  
         }
@@ -59,9 +67,9 @@ $(function() {
         if($(this).hasClass('avail') || $(this).hasClass('capture')) {
 
           // Side to go next
-          turn = 'light';
+          var nextTurn = 'light';
           if(side === 'light') {
-            turn = 'dark';
+            nextTurn = 'dark';
           }
 
           var data = {
@@ -70,7 +78,7 @@ $(function() {
             piece: $(piece).attr('title').toLowerCase(),
             origin: $(piece).parent().attr('data-position'),
             target: $(this).attr('data-position'),
-            turn: turn
+            turn: nextTurn
           }
           socket.emit('move', data);
         }
@@ -81,7 +89,7 @@ $(function() {
 
   socket.on('piece moved', function(data) {
     turn = data.turn;
-    console.log(data);
+    //console.log(data);
     var yOrigin = data.origin[0];
     var xOrigin = data.origin[1];
 
@@ -110,18 +118,80 @@ $(function() {
       return;
     } else {
       move(piece, target);
+      check(room);
     }
     clearSelections();
-
   });
 
 
+  // socket.on('disconnect', function() {
+  //   if(start) {
+  //   let data = {
+  //       room: room,
+  //       side: side
+  //     }
+  //     console.log("client forefeit...");
+  //     socket.emit('forfeiting', data);
+  //   }
+  // });
+
+  socket.on('forfeiting', function(forfeitingSide) {
+    if(start) {
+      if(side !== 'observer') {
+        var modal = document.createElement('div');
+        $(modal).attr('id', 'popup');
+        const structure = '<i class="fas fa-chess"></i>' +
+                          '<div id="modal-header">You win!</div>'+
+                          '<div id="modal-body">The opponent has forfeited and left the game.</div>'+
+                          '<div id="modal-footer"><button id="modal-exit">Return to Home</button></div>';
+        $(modal).html(structure);
+
+        var block = document.createElement('div');
+        $(block).attr('id', 'popup-cover');
+        $('body').append(modal);
+        $('body').append(block);
+        //alert('You won! The opponent has forfeited.');
+        return;
+      }
+
+      if(forfeitingSide === 'dark') {
+        alert('Black has forfeited. White wins!');
+      } else {
+        alert('White has forfeited. Black wins!');
+      }
+      // console.log("am resigning");
+
+      // let data = {
+      //   room: room,
+      //   side: side
+      // }
+      // console.log("client forefeited...");
+      // socket.emit('forfeited', data);
+    }
+  });
+  // socket.on('game over', function(data) {
+  //   console.log("game over??");
+  //   if(data.winner === side) {
+  //     alert("You won!");
+  //   }
+  // });
+
+  socket.on('checked', function(data) {
+    console.log("check data: " + data);
+    if(data === side) {
+      var king = $('#board .inner .tile i[title="King"]')[0];
+      console.log("ze king: ");
+      console.log(king);
+      $(king).parent().addClass('check');
+    }
+  })
 });
 
 function clearSelections() {
   $(".tile.selected").removeClass('selected');
   $('.tile.avail').removeClass('avail').html('');
   $(".tile.capture").removeClass('capture');
+  $(".tile.check").removeClass('check');
 }
 
 function updateTurn(side) {
@@ -222,21 +292,22 @@ function opponentMove(piece, target) {
   }
 
   $(origin).html('');
-  $(origin).addClass('origin');
+  $(origin).addClass('origin empty').removeClass('occupied');
   //$(target).html('');
   $(target).append(piece).addClass('target occupied').removeClass("empty");
+
   return;
 }
 
 function move(piece, target) {
-  console.log("playermove");
+  //console.log("playermove");
   $('.tile.target').removeClass('target');
   $('.tile.origin').removeClass('origin');
   //console.log(target);
   //console.log(piece);
-  console.log($(piece).parent().hasClass('selected'));
+  //console.log($(piece).parent().hasClass('selected'));
   if($(piece).parent().hasClass('selected')) {
-    console.log('has calsss');
+    //console.log('has calsss');
     var origin = $(piece).parent();
     $(origin).addClass('origin');
     // console.log(origin);
@@ -250,8 +321,8 @@ function move(piece, target) {
     if($(target).hasClass('capture')) {
       var capturePiece = $(target).children('i')[0];
       var capturedCount = $('#player-captures').children().length;
-      console.log(capturedCount / 2);
-      console.log(Math.floor(capturedCount / 2));
+      //console.log(capturedCount / 2);
+      //console.log(Math.floor(capturedCount / 2));
       $('#player-captures').append(capturePiece);      
       $(capturePiece).css('grid-row-start', 8 - Math.floor(capturedCount / 4));
       $(target).removeClass('capture');
@@ -260,10 +331,69 @@ function move(piece, target) {
     }
     $(target).append(piece).addClass('target');
   }
+
+  
+  // var opponent = 'light';
+  // if(side === 'light') {
+  //   opponent = 'dark';
+  // }
 }
 
-function calculateMovesByElements(piece) {
+// See if any move will kill the king
+function check(room) {
+  console.log("Checking...");
+  const pieces = $('#board .inner').find('i.' + side);
+
+  var check = false;
+  outer:
+  for(let i = 0; i < pieces.length; i++) {
+    console.log(pieces[i]);
+    var piecesInDanger = calculateMovesByElements(pieces[i], side).capture;
+    console.log("Pieces in danger: ");
+    console.log(piecesInDanger);
+    if(piecesInDanger.length > 1) {
+      for(let j = 1; j < piecesInDanger.length; j++) {
+        // console.log(j);
+        // console.log(piecesInDanger[i]);
+        var currentPiece = $(piecesInDanger[j]).children('i')[0];
+        console.log(currentPiece);
+        if($(currentPiece).attr('title') === 'King') {
+          check = true;
+          break outer;
+        }
+      }
+    }
+    
+    // if(typeof piecesInDanger === undefined) {
+    //   break;
+    // }
+
+  }
+
+  // console.log("Check? " + check);
+  // if(check) {
+  //   alert("Check!");
+  // }
+
+  if(check) {
+    console.log("CHECK");
+    var checked = 'light';
+    if(side === 'light') {
+      checked = 'dark'
+    }
+
+    socket.emit('check', {room: room, side: checked});
+  }
+
+}
+
+function calculateMovesByElements(piece, side) {
+  //console.log(piece);
 // Both piece and location are elements
+  var moves = {
+    capture: [''],
+    avails: ['']
+  };
   const indicator = '<i class="fas fa-times"></i>';
   var allRows = $("#board .row");
   var type = $(piece).attr('title').toLowerCase();
@@ -272,8 +402,8 @@ function calculateMovesByElements(piece) {
   const originRow = $(originTile).parent();
   const row = pos[0] - 1;
   const col = pos[1] - 1;
-  console.log(row);
-  console.log(col);
+  //console.log(row);
+  //console.log(col);
 
   if(type === 'pawn') {
     // console.log("pawnee");
@@ -286,24 +416,32 @@ function calculateMovesByElements(piece) {
     let captureTiles = [$(newRow).children()[col - 1], $(newRow).children()[col + 1]];
 
     if($(newTile).hasClass("empty")) {
-      $(newTile).addClass('avail');
-      $(newTile).append(indicator);
+      //$(newTile).addClass('avail');
+      //$(newTile).append(indicator);
+      moves.avails.push(newTile);
       if(row === 1 && $(extraTile).hasClass("empty")) {
-        $(extraTile).append(indicator);
-        $(extraTile).addClass('avail');
-  
+        //$(extraTile).append(indicator);
+        //$(extraTile).addClass('avail');
+        moves.avails.push(extraTile);
+
       }
+      // console.log("pawns");
+      // console.log(moves.avails);
+      // console.log(moves);
+
     }
 
     for(let i = 0; i < 2; i++) {
       let tile = captureTiles[i];
       let targetPiece = $(tile).children('i')[0];
       if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
-        $(tile).addClass('capture');
+        //$(tile).addClass('capture');
+        console.log("CAN CAPTURE");
+        moves.capture.push(tile);
       }
     }
 
-    return;
+    return moves;
   }
 
   if(type ==='rook' || type === 'queen') {
@@ -329,13 +467,15 @@ function calculateMovesByElements(piece) {
         var newCol = col + j*x;
         let tile = $(allRows[newRow]).children()[newCol];
         if($(tile).hasClass('empty')) {
-          $(tile).addClass('avail').append(indicator);
+          //$(tile).addClass('avail').append(indicator);
+          moves.avails.push(tile);
         } else {
           // If tile is occupied with a piece NOT on your side
           let targetPiece = $(tile).children('i')[0];
-          console.log(targetPiece);
+          //console.log(targetPiece);
           if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
-            $(tile).addClass('capture');
+            //$(tile).addClass('capture');
+            moves.capture.push(tile);
           }
           break;
         }
@@ -372,18 +512,21 @@ function calculateMovesByElements(piece) {
     tiles.push($(allRows[Srow]).children()[EEcol]);
     tiles.push($(allRows[Srow]).children()[WWcol]);
 
-    console.log(tiles);
+    //console.log(tiles);
     for(let i = 0; i < tiles.length; i++) {
       let tile = tiles[i];
       if($(tile).hasClass('empty')) {
-        $(tile).addClass('avail').append(indicator);
+        //$(tile).addClass('avail').append(indicator);
+        moves.avails.push(tile);
       } else {
         let targetPiece = $(tile).children('i')[0];
         if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
-          $(tile).addClass('capture');
+          //$(tile).addClass('capture');
+          moves.capture.push(tile);
         }
       }
     }
+    return moves;
   }
 
   if(type === 'bishop' || type === 'queen') {
@@ -415,12 +558,14 @@ function calculateMovesByElements(piece) {
 
         let tile = $(allRows[yPos]).children()[xPos];
         if($(tile).hasClass('empty')) {
-          $(tile).addClass('avail').append(indicator);
+          //$(tile).addClass('avail').append(indicator);
+          moves.avails.push(tile);
         } else {
 
           let targetPiece = $(tile).children('i')[0];
           if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
-            $(tile).addClass('capture');
+            //$(tile).addClass('capture');
+            moves.capture.push(tile);
           }
 
           break;
@@ -437,15 +582,35 @@ function calculateMovesByElements(piece) {
       for(let j = -1; j < 2; j++) {
         let tile = $(currentRow).children()[col + j];
         if($(tile).hasClass('empty')) {
-          $(tile).addClass('avail').append(indicator);
+          //$(tile).addClass('avail').append(indicator);
+          moves.avails.push(tile);
+
         } else {
           let targetPiece = $(tile).children('i')[0];
           if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
-            $(tile).addClass('capture');
+            //$(tile).addClass('capture');
+            moves.capture.push(tile);
           }
         }
       }
     }
+    return moves;
+  }
+  //console.log(moves);
+  return moves;
+}
+
+function boardIndicators(tiles) {
+  //console.log(tiles);
+  const avails = tiles.avails;
+  const captures = tiles.capture;
+  const indicator = '<i class="fas fa-times"></i>';
+
+  for(let i = 1; i <= avails.length + 1; i++) {
+    $(avails[i]).addClass('avail').append(indicator);
   }
 
+  for(let i = 1; i <= captures.length + 1; i++) {
+    $(captures[i]).addClass('capture');
+  }
 }
