@@ -1,0 +1,216 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #abbbb5;
+  width: 100%;
+  display: grid;
+  grid-template: 100%/100%;
+  justify-items: center;
+  align-items: center;
+  height: 100vh;
+}
+
+button#generateRoom {
+  padding: 2%;
+  width: 20%;
+  text-transform: uppercase;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  text-transform: lowercase;
+}
+
+#container {
+  display: grid;
+  grid-template: 9fr 1fr/100%;
+  width: 100%;
+  align-items: center;
+  height: 90%;
+  justify-items: center;
+  grid-area: 1/1/2/2;
+}
+
+div#turn {
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 20px;
+  color: #4a1e1e;
+}
+
+#main {
+  width: 60%;
+  display: grid;
+  grid-template-columns: 2fr 8fr 2fr;
+  grid-template-rows: 100%;
+  grid-column-gap: 1%;
+  font-size: 3vw;
+}
+
+#lobby {
+  padding: 5%;
+  background: white;
+  border-top-right-radius: 5% 10%;
+  border-bottom-right-radius: 5% 10%;
+  border-top-left-radius: 5% 10%;
+  border-bottom-left-radius: 5% 10%;
+  text-align: center;
+  max-height: 400px;
+  box-sizing: border-box;
+}
+#lobby h1 {
+  text-transform: lowercase;
+}
+
+input#game-url {
+  width: 100%;
+  font-size: 1em;
+  padding: 5%;
+  box-sizing: border-box;
+  background: #e3e3e3;
+  border: none;
+  border: 1px solid #bcbcbc;
+  margin-top: 10px;
+}
+
+.captures {
+  height: 100%;
+  display: grid;
+  box-sizing: border-box;
+  grid-template: repeat(8, 1fr)/repeat(2, 1fr);
+  max-width: 100%;
+  overflow: hidden;
+  align-items: center;
+  justify-items: center;
+}
+
+#board {
+  width: 100%;
+  aspect-ratio: 1/1;
+  margin: auto;
+  text-align: center;
+}
+#board .inner {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  box-sizing: border-box;
+  border: 5px solid #300505;
+  grid-template: repeat(8, 1fr)/100%;
+  background: #794E4E;
+}
+#board .row {
+  display: grid;
+  grid-template: 100%/repeat(8, 1fr);
+}
+#board .row .tile {
+  display: grid;
+  align-items: center;
+  text-align: center;
+}
+#board .row .tile.dark {
+  background-color: #794E4E;
+}
+#board .row .tile.dark.origin {
+  background-color: #494976;
+}
+#board .row .tile.light {
+  background-color: #9F6B5F;
+}
+#board .row .tile.light.origin {
+  background-color: #545586;
+}
+#board .row .tile.check .piece {
+  background-color: #ff000033;
+}
+#board .row .tile.target .piece {
+  background-color: #3f407c7a;
+}
+#board .row .tile.selected .piece {
+  background-color: #bbf0bb8a;
+}
+#board .row .tile.capture .piece {
+  background-color: #ffbe6db0;
+}
+#board .row .tile .piece {
+  line-height: 150%;
+  width: 100%;
+  height: 100%;
+}
+#board .row .tile .piece.dark {
+  color: #4A1E1E;
+}
+#board .row .tile .piece.light {
+  color: #FFD9D9;
+}
+
+.fa-times {
+  color: rgba(74, 30, 30, 0.4);
+}
+
+#popup {
+  grid-area: 1/1/2/2;
+  position: fixed;
+  width: 35%;
+  height: 50%;
+  background: white;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  display: grid;
+  grid-template: 50% 25% 25%/100%;
+  border-top-right-radius: 3.5% 5%;
+  border-top-left-radius: 3.5% 5%;
+  border-bottom-left-radius: 3.5% 5%;
+  border-bottom-right-radius: 3.5% 5%;
+}
+#popup i.fa-chess {
+  grid-area: 1/1/2/2;
+  justify-self: center;
+  align-self: center;
+  font-size: 4vw;
+  color: #300505;
+}
+#popup i#modal-close {
+  grid-area: 1/1/2/2;
+  align-self: flex-start;
+  justify-self: right;
+  padding: 10px;
+}
+#popup #modal-header {
+  grid-area: 1/1/2/2;
+  justify-self: center;
+  align-self: end;
+  font-size: 40px;
+  font-weight: bold;
+}
+#popup #modal-body {
+  text-align: center;
+}
+#popup #modal-footer {
+  align-self: center;
+  justify-self: center;
+  width: 30%;
+  display: flex;
+  align-items: center;
+}
+#popup #modal-footer button {
+  padding: 5%;
+  margin: auto;
+  border: none;
+  border-radius: 5px;
+  background: #a4caa4;
+  width: 120%;
+  text-transform: lowercase;
+  font-weight: bold;
+}
+
+#popup-cover {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: #6f6f6f;
+  opacity: 0.5;
+}
+
+/*# sourceMappingURL=stylesheet.css.map */

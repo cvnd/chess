@@ -1,21 +1,21 @@
 $dark-tile-base: #794E4E;
-$dark-tile-check: #841313;
-$dark-tile-origin:#D9B2B2;
-$dark-tile-target: #A35B4A;
-$dark-tile-capture: #B88754;
-$dark-tile-selected: #7c6263;
-
+$dark-tile-origin: #494976;
 
 $light-tile-base: #9F6B5F;
-$light-tile-check: #E24242;
-$light-tile-origin: #DAB7AE;
-$light-tile-target: #C46E5A;
-$light-tile-capture: #CA945B;
-$light-tile-selected: #bbc9ad;
+$light-tile-origin: #545586;
 
 
 $dark-piece: #4A1E1E;
 $light-piece: #FFD9D9;
+
+
+//Overlay colours
+$check : #ff000033;
+$selected: #bbf0bb8a;
+$capture : #ffbe6db0;
+// $target : #4a1e1e87;
+$target: #3f407c7a;
+$origin : #c5848487;
 
 
 body {
@@ -129,65 +129,57 @@ input#game-url {
             text-align: center;
 
             &.dark {
-                background-color: #794E4E;
-
-                &.check {
-                    background-color: #841313;
-                }
+                background-color: $dark-tile-base;
 
                 &.origin {
-                    background-color:#D9B2B2;
+                    background-color: $dark-tile-origin;
                 }
-
-                &.target {
-                    background-color: #A35B4A;
-                }
-
-                &.capture {
-                    /* background: radial-gradient(circle at center, #54d399 10%, #8d314c, #8d314c 100%); */
-                    background-color: #B88754;
-                }
-
-                &.selected {
-                    background-color: #7c6263;
-                }
-                
-                
+                   
             }
 
             &.light {
-                background-color: #9F6B5F;
-
-                &.check {
-                    background-color: #E24242;
-                }
-
+                background-color: $light-tile-base;
                 &.origin {
-                    background-color: #DAB7AE;
+                    background-color: $light-tile-origin;
                 }
 
-                &.target {
-                    background-color: #C46E5A;
-                }
+            }
 
-                &.capture {
-                    /* background: radial-gradient(circle at center, #54d399 10%, #e8c5b6, #e8c5b6 100%); */
-                    background-color: #CA945B;
+            &.check {
+                .piece {
+                    background-color: $check;
                 }
+            }
 
-                &.selected {
-                    background-color: #bbc9ad;
+            &.target {
+                .piece {
+                    background-color: $target;
                 }
-                
+            }
+
+
+            &.selected {
+                .piece {
+                    background-color: $selected;
+                }
+            }
+
+            &.capture {
+                .piece {
+                    background-color: $capture;
+                }
             }
 
             .piece {
+                line-height: 150%;
+                width: 100%;
+                height: 100%;
                 &.dark {
-                    color: #4A1E1E;
+                    color: $dark-piece;
                 }
 
                 &.light {
-                    color: #FFD9D9;
+                    color: $light-piece;
                 }
             }
         }
@@ -216,28 +208,28 @@ input#game-url {
     border-bottom-left-radius: 3.5% 5%;
     border-bottom-right-radius: 3.5% 5%;
 
+    i.fa-chess {
+        grid-area: 1 / 1 /2 /2;
+        justify-self: center;
+        align-self: center;
+        font-size: 4vw;
+        color: #300505;
+    }
+
+    i#modal-close {
+        grid-area: 1 / 1 / 2 /2;
+        align-self: flex-start;
+        justify-self: right;
+        padding: 10px;
+    }
+
     #modal-header {
         grid-area: 1 / 1 /2 /2;
         justify-self: center;
         align-self: end;
         font-size: 40px;
         font-weight: bold;
-        
-        i.fa-chess {
-            grid-area: 1 / 1 /2 /2;
-            justify-self: center;
-            align-self: center;
-            font-size: 4vw;
-            color: #300505;
-        }
 
-        
-        i#modal-close {
-            grid-area: 1 / 1 / 2 /2;
-            align-self: flex-start;
-            justify-self: right;
-            padding: 10px;
-        }
     }
     
     #modal-body {
