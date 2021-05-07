@@ -101,6 +101,7 @@ input#game-url {
     overflow: hidden;
     align-items: center;
     justify-items: center;
+    text-align: center;
 }
 
 #board {
@@ -169,22 +170,22 @@ input#game-url {
                     background-color: $capture;
                 }
             }
-
-            .piece {
-                line-height: 150%;
-                width: 100%;
-                height: 100%;
-                &.dark {
-                    color: $dark-piece;
-                }
-
-                &.light {
-                    color: $light-piece;
-                }
-            }
         }
     }
 } 
+
+.piece {
+    line-height: 150%;
+    width: 100%;
+    height: 100%;
+    &.dark {
+        color: $dark-piece;
+    }
+
+    &.light {
+        color: $light-piece;
+    }
+}
 
 
 .fa-times {

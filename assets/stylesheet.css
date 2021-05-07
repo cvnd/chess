@@ -81,6 +81,7 @@ input#game-url {
   overflow: hidden;
   align-items: center;
   justify-items: center;
+  text-align: center;
 }
 
 #board {
@@ -131,15 +132,16 @@ input#game-url {
 #board .row .tile.capture .piece {
   background-color: #ffbe6db0;
 }
-#board .row .tile .piece {
+
+.piece {
   line-height: 150%;
   width: 100%;
   height: 100%;
 }
-#board .row .tile .piece.dark {
+.piece.dark {
   color: #4A1E1E;
 }
-#board .row .tile .piece.light {
+.piece.light {
   color: #FFD9D9;
 }
 

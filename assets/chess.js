@@ -136,6 +136,29 @@ $(function() {
   //   }
   // });
 
+  socket.on('gameOver', function(winningSide) {
+    if(start) {
+      var header ='';
+      var body = ''
+      if(side !== 'observer') {
+        if(winningSide === side) {
+          header = 'You win!';
+          body = 'Nicely done. Up for a rematch?';
+        } else {
+          header = 'You lost';
+          body = 'Good game! Better luck next time?'
+        }
+
+      } else {
+        if(winningSide === 'white') {
+          header = 'White wins!';
+        } else {
+          header = 'Black wins!';
+        }
+      }
+      gameOver(header, body);
+    }
+  });
   socket.on('forfeiting', function(forfeitingSide) {
     if(start) {
       var header ='';
@@ -152,22 +175,7 @@ $(function() {
           body = 'White has forfeited and left the game.';
         }
       }
-      const structure = '<i class="fas fa-chess"></i>' +
-                        '<div id="modal-header">' + header + '</div>'+
-                        '<div id="modal-body">' + body + '</div>'+
-                        '<div id="modal-footer"><button id="modal-exit">Return to Home</button></div>';
-      var modal = document.createElement('div');
-      $(modal).attr('id', 'popup');
-      $(modal).html(structure);
-
-      var block = document.createElement('div');
-      $(block).attr('id', 'popup-cover');
-      $('body').append(modal);
-      $('body').append(block);
-
-      $('button#modal-exit').click(function(){
-        window.location.href = '/';
-      });
+      gameOver(header, body);
     }
   });
   // socket.on('game over', function(data) {
@@ -178,15 +186,35 @@ $(function() {
   // });
 
   socket.on('checked', function(data) {
-    console.log("check data: " + data);
+    //console.log("check data: " + data);
     if(data === side) {
       var king = $('#board .inner .tile i[title="King"]')[0];
-      console.log("ze king: ");
-      console.log(king);
+      //console.log("ze king: ");
+      //console.log(king);
       $(king).parent().addClass('check');
     }
   })
 });
+
+function gameOver(header, body) {
+  window.onbeforeunload = null;
+  const structure = '<i class="fas fa-chess"></i>' +
+                    '<div id="modal-header">' + header + '</div>'+
+                    '<div id="modal-body">' + body + '</div>'+
+                    '<div id="modal-footer"><button id="modal-exit">Return to Home</button></div>';
+  var modal = document.createElement('div');
+  $(modal).attr('id', 'popup');
+  $(modal).html(structure);
+
+  var block = document.createElement('div');
+  $(block).attr('id', 'popup-cover');
+  $('body').append(modal);
+  $('body').append(block);
+
+  $('button#modal-exit').click(function(){
+    window.location.href = '/';
+  });
+}
 
 function clearSelections() {
   $(".tile.selected").removeClass('selected');
@@ -324,9 +352,16 @@ function move(piece, target) {
       var capturedCount = $('#player-captures').children().length;
       //console.log(capturedCount / 2);
       //console.log(Math.floor(capturedCount / 2));
+      console.log(capturePiece);
+      if($(capturePiece).attr('title') === 'King') {
+        //console.log("VICTOIRE FOR MOI");
+        socket.emit('victory', side);
+      }
+
       $('#player-captures').append(capturePiece);      
       $(capturePiece).css('grid-row-start', 8 - Math.floor(capturedCount / 4));
       $(target).removeClass('capture');
+
     } else {
       $(target).removeClass('empty').addClass('occupied');
     }
@@ -342,22 +377,22 @@ function move(piece, target) {
 
 // See if any move will kill the king
 function check(room) {
-  console.log("Checking...");
+  //console.log("Checking...");
   const pieces = $('#board .inner').find('i.' + side);
 
   var check = false;
   outer:
   for(let i = 0; i < pieces.length; i++) {
-    console.log(pieces[i]);
+    //console.log(pieces[i]);
     var piecesInDanger = calculateMovesByElements(pieces[i], side).capture;
-    console.log("Pieces in danger: ");
-    console.log(piecesInDanger);
+    //console.log("Pieces in danger: ");
+    //console.log(piecesInDanger);
     if(piecesInDanger.length > 1) {
       for(let j = 1; j < piecesInDanger.length; j++) {
         // console.log(j);
         // console.log(piecesInDanger[i]);
         var currentPiece = $(piecesInDanger[j]).children('i')[0];
-        console.log(currentPiece);
+        //console.log(currentPiece);
         if($(currentPiece).attr('title') === 'King') {
           check = true;
           break outer;
