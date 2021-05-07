@@ -85,6 +85,7 @@ $(function() {
 
       });
     }
+
   });
 
   socket.on('piece moved', function(data) {
@@ -137,36 +138,36 @@ $(function() {
 
   socket.on('forfeiting', function(forfeitingSide) {
     if(start) {
+      var header ='';
+      var body = ''
       if(side !== 'observer') {
-        var modal = document.createElement('div');
-        $(modal).attr('id', 'popup');
-        const structure = '<i class="fas fa-chess"></i>' +
-                          '<div id="modal-header">You win!</div>'+
-                          '<div id="modal-body">The opponent has forfeited and left the game.</div>'+
-                          '<div id="modal-footer"><button id="modal-exit">Return to Home</button></div>';
-        $(modal).html(structure);
-
-        var block = document.createElement('div');
-        $(block).attr('id', 'popup-cover');
-        $('body').append(modal);
-        $('body').append(block);
-        //alert('You won! The opponent has forfeited.');
-        return;
-      }
-
-      if(forfeitingSide === 'dark') {
-        alert('Black has forfeited. White wins!');
+        header = 'You win!';
+        body = 'The opponent has forfeited and left the game.';
       } else {
-        alert('White has forfeited. Black wins!');
+        if(forfeitingSide === 'dark') {
+          header = 'White wins!';
+          body = 'Black has forfeited and left the game.'
+        } else {
+          header = 'Black wins!';
+          body = 'White has forfeited and left the game.';
+        }
       }
-      // console.log("am resigning");
+      const structure = '<i class="fas fa-chess"></i>' +
+                        '<div id="modal-header">' + header + '</div>'+
+                        '<div id="modal-body">' + body + '</div>'+
+                        '<div id="modal-footer"><button id="modal-exit">Return to Home</button></div>';
+      var modal = document.createElement('div');
+      $(modal).attr('id', 'popup');
+      $(modal).html(structure);
 
-      // let data = {
-      //   room: room,
-      //   side: side
-      // }
-      // console.log("client forefeited...");
-      // socket.emit('forfeited', data);
+      var block = document.createElement('div');
+      $(block).attr('id', 'popup-cover');
+      $('body').append(modal);
+      $('body').append(block);
+
+      $('button#modal-exit').click(function(){
+        window.location.href = '/';
+      });
     }
   });
   // socket.on('game over', function(data) {
