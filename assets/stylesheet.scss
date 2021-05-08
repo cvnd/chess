@@ -33,11 +33,65 @@ body {
 button#generateRoom {
     padding: 2%;
     width: 20%;
-    text-transform: uppercase;
-    font-size: 20px;
     font-weight: bold;
     text-align: center;
+    position: relative;
+    border-top-left-radius: 15% 50%;
     text-transform: lowercase;
+    border-top-right-radius: 15% 50%;
+    border-bottom-left-radius: 15% 50%;
+    border-bottom-right-radius: 15% 50%;
+    border: 0;
+    font-size: 2vw;
+    overflow: hidden;
+    color: #abbbb5;
+    transition: 1s ease;
+    background-color: transparent;
+    border: 5px solid white;
+
+    &::before {
+        border-top-left-radius: 15% 50%;
+        text-transform: lowercase;
+        border-top-right-radius: 15% 50%;
+        border-bottom-left-radius: 15% 50%;
+        border-bottom-right-radius: 15% 50%;    
+        content: '';
+        width: 0%;
+        height: 100%;
+        background: #3c3c3c;
+        position: absolute;
+        left: 0%;
+        top: 0;
+        transition: width 1s;
+        z-index: -1;
+    }
+
+    &::after {
+        text-transform: lowercase;
+        content: '';
+        width: 100%;
+        height: 100%;
+        background: white;
+        position: absolute;
+        left: 0%;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        z-index: -2;
+        transition: width 1s;
+    
+    }
+
+
+    &:hover {
+        color: white;
+        &::before {
+            width: 100%;
+            // animation-name: buttonSlideIn;
+            // animation-duration: 1s;
+            // animation-fill-mode: forwards;
+        }
+    }
 }
 #container {
     display: grid;
@@ -178,6 +232,8 @@ input#game-url {
     line-height: 150%;
     width: 100%;
     height: 100%;
+    transition: transform 0.5s ease;
+
     &.dark {
         color: $dark-piece;
     }
@@ -265,3 +321,23 @@ input#game-url {
     opacity: 0.5;
 }
 
+// @keyframes buttonSlideIn{
+//     to {
+//         left: 0;
+//     }
+// }
+
+// @keyframes buttonSlideOut {
+//     from {
+//         left: 0;
+//     }
+//     to {
+//         left: -100%;
+//     }
+// }
+
+// @keyframes pieceSlide {
+//     to {
+
+//     }
+// }

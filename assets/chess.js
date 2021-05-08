@@ -113,15 +113,22 @@ $(function() {
     var piece = $(origin).children('i')[0];
     //console.log(piece);
     updateTurn(side);
-
-    if(data.side !== side) {
-      opponentMove(piece, target);
-      return;
-    } else {
-      move(piece, target);
-      check(room);
-    }
-    clearSelections();
+    const xTranslate = (xTarget - xOrigin) * 100;
+    const yTranslate = -(yTarget - yOrigin) * 100;
+    $(piece).css({'transform': 'translate('+ xTranslate +'%, '+ yTranslate+'%)', 'background-color': 'transparent'});
+    $(piece).on('transitionend webkitTransitionEnd oTransitionEnd', function () {
+      document.getElementById("pieceThunk").play();
+      $(piece).css({'transform': '', 'background-color': ''});
+      if(data.side !== side) {
+        opponentMove(piece, target);
+        return;
+      } else {
+        move(piece, target);
+        check(room);
+      }
+      clearSelections();
+    });
+  
   });
 
 
