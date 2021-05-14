@@ -9,23 +9,20 @@ $(function() {
   
   socket.emit('join', {room: room, side: side});
 
-  //console.log(side);
 
   socket.on('start game', function() {
-    //console.log(room);
 
     window.onbeforeunload = function () {
       clearSelections();
       return 'Are you sure you want to leave? You will forfeit the game';
     }
 
-    //console.log(side);
   
     $('#lobby').hide();
     $('.game').show();
 
     updateTurn(side);
-    if(start == false) {
+    if(!start) {
       boardInit();
       piecesInit(side);
       start = true;
@@ -34,11 +31,8 @@ $(function() {
     if(side !== 'observer'){
       $('.tile').click(function() {
         if(turn !== side) {
-          //console.log(turn);
           return;
         }
-        // console.log("CLIQUE");
-        //console.log($(this).hasClass('selected'));
     
         // Deselecting piece
         if($(this).hasClass('selected')) {
@@ -88,15 +82,17 @@ $(function() {
 
   });
 
+  // On receving signal that opponent moved a piece
   socket.on('piece moved', function(data) {
     turn = data.turn;
-    //console.log(data);
     var yOrigin = data.origin[0];
     var xOrigin = data.origin[1];
 
     var yTarget = data.target[0];
     var xTarget = data.target[1];
 
+
+    // Modify target for flip
     if(data.side !== side) {
       yOrigin = 9 - yOrigin;
       xOrigin = 9 - xOrigin;
@@ -108,10 +104,7 @@ $(function() {
     var origin = $('.tile[data-position="' + yOrigin + '' + xOrigin + '"]')[0];
     var target = $('.tile[data-position="' + yTarget + '' + xTarget + '"]')[0];
 
-    //console.log(origin);
-    //console.log(target);
     var piece = $(origin).children('i')[0];
-    //console.log(piece);
     updateTurn(side);
     const xTranslate = (xTarget - xOrigin) * 100;
     const yTranslate = -(yTarget - yOrigin) * 100;
@@ -131,17 +124,6 @@ $(function() {
   
   });
 
-
-  // socket.on('disconnect', function() {
-  //   if(start) {
-  //   let data = {
-  //       room: room,
-  //       side: side
-  //     }
-  //     console.log("client forefeit...");
-  //     socket.emit('forfeiting', data);
-  //   }
-  // });
 
   socket.on('gameOver', function(winningSide) {
     if(start) {
@@ -166,7 +148,11 @@ $(function() {
       gameOver(header, body);
     }
   });
+
+  // Getting message that a side has forfeited
   socket.on('forfeiting', function(forfeitingSide) {
+
+    // If the game hasn't started, doesn't count
     if(start) {
       var header ='';
       var body = ''
@@ -185,24 +171,17 @@ $(function() {
       gameOver(header, body);
     }
   });
-  // socket.on('game over', function(data) {
-  //   console.log("game over??");
-  //   if(data.winner === side) {
-  //     alert("You won!");
-  //   }
-  // });
 
   socket.on('checked', function(data) {
-    //console.log("check data: " + data);
     if(data === side) {
       var king = $('#board .inner .tile i[title="King"]')[0];
-      //console.log("ze king: ");
-      //console.log(king);
       $(king).parent().addClass('check');
     }
   })
 });
 
+
+// Popup for game over
 function gameOver(header, body) {
   window.onbeforeunload = null;
   const structure = '<i class="fas fa-chess"></i>' +
@@ -223,6 +202,7 @@ function gameOver(header, body) {
   });
 }
 
+// Clear indicator classes
 function clearSelections() {
   $(".tile.selected").removeClass('selected');
   $('.tile.avail').removeClass('avail').html('');
@@ -274,9 +254,7 @@ function boardInit() {
 }
 
 function piecesInit(side) {
-  //Rooks
   var rows = $('#board .inner .row');
-  //console.log(rows[0]);
 
   var specialRows = [rows[0], rows[7]];
   var pawnRows = [rows[1], rows[6]];
@@ -294,7 +272,6 @@ function piecesInit(side) {
     let tiles = $(specialRows[i]).children();
     $(tiles).addClass('occupied').removeClass('empty');
     if(i == 0) {
-      //side = 'light';
       $(tiles[3]).append('<i class="fas fa-chess-queen piece '+ side +'" title="Queen"></i>');
       $(tiles[4]).append('<i class="fas fa-chess-king piece '+ side +'" title="King"></i>');  
     } else {
@@ -329,26 +306,16 @@ function opponentMove(piece, target) {
 
   $(origin).html('');
   $(origin).addClass('origin empty').removeClass('occupied');
-  //$(target).html('');
   $(target).append(piece).addClass('target occupied').removeClass("empty");
-
-  return;
 }
 
 function move(piece, target) {
-  //console.log("playermove");
   $('.tile.target').removeClass('target');
   $('.tile.origin').removeClass('origin');
-  //console.log(target);
-  //console.log(piece);
-  //console.log($(piece).parent().hasClass('selected'));
+
   if($(piece).parent().hasClass('selected')) {
-    //console.log('has calsss');
     var origin = $(piece).parent();
     $(origin).addClass('origin');
-    // console.log(origin);
-    // console.log(piece);
-    // console.log("origin: " + origin);
     $(origin).html('');
     $('.tile.avail').removeClass('avail').html('');
     $('.tile.selected').removeClass('selected');
@@ -357,11 +324,9 @@ function move(piece, target) {
     if($(target).hasClass('capture')) {
       var capturePiece = $(target).children('i')[0];
       var capturedCount = $('#player-captures').children().length;
-      //console.log(capturedCount / 2);
-      //console.log(Math.floor(capturedCount / 2));
-      console.log(capturePiece);
+
+      // If the captured piece is a King, declare victory and emit to room
       if($(capturePiece).attr('title') === 'King') {
-        //console.log("VICTOIRE FOR MOI");
         socket.emit('victory', side);
       }
 
@@ -375,31 +340,19 @@ function move(piece, target) {
     $(target).append(piece).addClass('target');
   }
 
-  
-  // var opponent = 'light';
-  // if(side === 'light') {
-  //   opponent = 'dark';
-  // }
 }
 
 // See if any move will kill the king
 function check(room) {
-  //console.log("Checking...");
   const pieces = $('#board .inner').find('i.' + side);
 
   var check = false;
   outer:
   for(let i = 0; i < pieces.length; i++) {
-    //console.log(pieces[i]);
     var piecesInDanger = calculateMovesByElements(pieces[i], side).capture;
-    //console.log("Pieces in danger: ");
-    //console.log(piecesInDanger);
     if(piecesInDanger.length > 1) {
       for(let j = 1; j < piecesInDanger.length; j++) {
-        // console.log(j);
-        // console.log(piecesInDanger[i]);
         var currentPiece = $(piecesInDanger[j]).children('i')[0];
-        //console.log(currentPiece);
         if($(currentPiece).attr('title') === 'King') {
           check = true;
           break outer;
@@ -407,16 +360,8 @@ function check(room) {
       }
     }
     
-    // if(typeof piecesInDanger === undefined) {
-    //   break;
-    // }
 
   }
-
-  // console.log("Check? " + check);
-  // if(check) {
-  //   alert("Check!");
-  // }
 
   if(check) {
     console.log("CHECK");
@@ -430,9 +375,10 @@ function check(room) {
 
 }
 
+// Returns object of all available moves separated by empty spaces and captures
 function calculateMovesByElements(piece, side) {
-  //console.log(piece);
-// Both piece and location are elements
+
+  // Both piece and location are elements
   var moves = {
     capture: [''],
     avails: ['']
@@ -445,11 +391,8 @@ function calculateMovesByElements(piece, side) {
   const originRow = $(originTile).parent();
   const row = pos[0] - 1;
   const col = pos[1] - 1;
-  //console.log(row);
-  //console.log(col);
 
   if(type === 'pawn') {
-    // console.log("pawnee");
     let newRow = allRows[row + 1];
     let extraRow = allRows[row + 2];
     //console.log(newRow);
@@ -459,18 +402,11 @@ function calculateMovesByElements(piece, side) {
     let captureTiles = [$(newRow).children()[col - 1], $(newRow).children()[col + 1]];
 
     if($(newTile).hasClass("empty")) {
-      //$(newTile).addClass('avail');
-      //$(newTile).append(indicator);
       moves.avails.push(newTile);
       if(row === 1 && $(extraTile).hasClass("empty")) {
-        //$(extraTile).append(indicator);
-        //$(extraTile).addClass('avail');
         moves.avails.push(extraTile);
 
       }
-      // console.log("pawns");
-      // console.log(moves.avails);
-      // console.log(moves);
 
     }
 
@@ -478,8 +414,6 @@ function calculateMovesByElements(piece, side) {
       let tile = captureTiles[i];
       let targetPiece = $(tile).children('i')[0];
       if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
-        //$(tile).addClass('capture');
-        console.log("CAN CAPTURE");
         moves.capture.push(tile);
       }
     }
@@ -510,14 +444,11 @@ function calculateMovesByElements(piece, side) {
         var newCol = col + j*x;
         let tile = $(allRows[newRow]).children()[newCol];
         if($(tile).hasClass('empty')) {
-          //$(tile).addClass('avail').append(indicator);
           moves.avails.push(tile);
         } else {
           // If tile is occupied with a piece NOT on your side
           let targetPiece = $(tile).children('i')[0];
-          //console.log(targetPiece);
           if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
-            //$(tile).addClass('capture');
             moves.capture.push(tile);
           }
           break;
@@ -537,14 +468,6 @@ function calculateMovesByElements(piece, side) {
     let SSrow = row - 2;
     
     let tiles = [];
-    // let NNEtile = $(allRows[NNrow]).children()[Ecol];
-    // let NEEtile = $(allRows[Nrow]).children()[EEcol];
-    // let NNWtile = $(allRows[NNrow]).children()[Wcol];
-    // let NWWtile = $(allRows[Nrow]).children()[WWcol];
-    // let SSE = $(allRows[SSrow]).children()[Ecol];
-    // let SSW = $(allRows[SSrow]).children()[Wcol];
-    // let SEE = $(allRows[Srow]).children()[EEcol];
-    // let SWW = $(allRows[Srow]).children()[WWcol];
 
     tiles.push($(allRows[NNrow]).children()[Ecol]);
     tiles.push($(allRows[Nrow]).children()[EEcol]);
@@ -555,16 +478,13 @@ function calculateMovesByElements(piece, side) {
     tiles.push($(allRows[Srow]).children()[EEcol]);
     tiles.push($(allRows[Srow]).children()[WWcol]);
 
-    //console.log(tiles);
     for(let i = 0; i < tiles.length; i++) {
       let tile = tiles[i];
       if($(tile).hasClass('empty')) {
-        //$(tile).addClass('avail').append(indicator);
         moves.avails.push(tile);
       } else {
         let targetPiece = $(tile).children('i')[0];
         if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
-          //$(tile).addClass('capture');
           moves.capture.push(tile);
         }
       }
@@ -601,13 +521,11 @@ function calculateMovesByElements(piece, side) {
 
         let tile = $(allRows[yPos]).children()[xPos];
         if($(tile).hasClass('empty')) {
-          //$(tile).addClass('avail').append(indicator);
           moves.avails.push(tile);
         } else {
 
           let targetPiece = $(tile).children('i')[0];
           if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
-            //$(tile).addClass('capture');
             moves.capture.push(tile);
           }
 
@@ -617,21 +535,17 @@ function calculateMovesByElements(piece, side) {
     }
   }
 
-  //TO-DO: king
-
   if(type === 'king') {
     for(let i = -1; i < 2; i++) {
       let currentRow = allRows[row + i];
       for(let j = -1; j < 2; j++) {
         let tile = $(currentRow).children()[col + j];
         if($(tile).hasClass('empty')) {
-          //$(tile).addClass('avail').append(indicator);
           moves.avails.push(tile);
 
         } else {
           let targetPiece = $(tile).children('i')[0];
           if($(tile).hasClass('occupied') && !$(targetPiece).hasClass(side)) {
-            //$(tile).addClass('capture');
             moves.capture.push(tile);
           }
         }
@@ -639,12 +553,11 @@ function calculateMovesByElements(piece, side) {
     }
     return moves;
   }
-  //console.log(moves);
   return moves;
 }
 
+// Add highlights to previously moved piece and capturable pieces.
 function boardIndicators(tiles) {
-  //console.log(tiles);
   const avails = tiles.avails;
   const captures = tiles.capture;
   const indicator = '<i class="fas fa-times"></i>';
